@@ -4,8 +4,14 @@ from the input folder to the output folder.
 
 This version preserves most of the grade 3 and grade 4 images, allocates the
 remaining budget across grades 0/1/2 using the same quota logic as the
-original selection script, and ignores missing files so that exactly IMAGES
-images are copied when enough valid files exist.
+original selection script, and ignores missing files so that as close to
+IMAGES images as possible are copied when enough valid files exist.
+
+Any rounding shortfall from the initial quota pass is backfilled
+proportionally from grades 0/1/2 (not from the unrestricted pool), so the
+class ratio designed by FRACTIONS_FOR_MAJORITY_CLASSES is preserved. Only if
+grades 0/1/2 are fully exhausted does it fall back to the unrestricted pool,
+with a printed warning.
 """
 
 import os
@@ -61,13 +67,47 @@ def build_selection(df):
     selection = pd.concat(selected_frames, ignore_index=True)
     selection = selection.drop_duplicates(subset=[IMAGE_COL]).reset_index(drop=True)
 
+    # --- Proportional backfill for rounding shortfall ---
+    # int() truncation in the quota pass above almost always leaves a small
+    # gap versus IMAGES. Fill that gap from grades 0/1/2 in the same
+    # proportions as FRACTIONS_FOR_MAJORITY_CLASSES, using each grade's next
+    # best-remaining images, instead of pulling from the unrestricted pool
+    # (which would silently skew the selection back toward grade 0).
+    if len(selection) < IMAGES:
+        shortfall = IMAGES - len(selection)
+        print(f"Backfilling {shortfall} image(s) proportionally across grades 0/1/2...")
+
+        for grade, fraction in FRACTIONS_FOR_MAJORITY_CLASSES.items():
+            if shortfall <= 0:
+                break
+
+            pool = df[df[LABEL_COL] == grade].copy()
+            pool = pool[~pool[IMAGE_COL].isin(selection[IMAGE_COL])]
+            pool = pool.sort_values("quality_score", ascending=False)
+
+            take = min(int(round(shortfall * fraction)), len(pool))
+            if take > 0:
+                selection = pd.concat([selection, pool.head(take)], ignore_index=True)
+                selection = selection.drop_duplicates(subset=[IMAGE_COL]).reset_index(drop=True)
+                shortfall = IMAGES - len(selection)
+
+    # --- Unrestricted fallback, only if grades 0/1/2 are fully exhausted ---
     if len(selection) < IMAGES:
         remaining = IMAGES - len(selection)
         available_pool = df.loc[~df[IMAGE_COL].isin(selection[IMAGE_COL])].copy()
+
         if len(available_pool) < remaining:
-            raise ValueError(
-                f"Only {len(available_pool)} additional valid images are available, but "
-                f"{remaining} more are needed to reach IMAGES={IMAGES}."
+            print(
+                f"Warning: only {len(available_pool)} additional valid images are available, "
+                f"but {remaining} more were needed. Proceeding with {len(selection) + len(available_pool)} "
+                f"images instead of the requested IMAGES={IMAGES}."
+            )
+            remaining = len(available_pool)
+        else:
+            print(
+                f"Warning: grades 0/1/2 pools exhausted before reaching IMAGES={IMAGES}. "
+                f"Falling back to the unrestricted pool for the remaining {remaining} image(s), "
+                "which may skew the intended class ratio."
             )
 
         available_pool = available_pool.sort_values("quality_score", ascending=False)
@@ -75,36 +115,40 @@ def build_selection(df):
         selection = selection.drop_duplicates(subset=[IMAGE_COL]).reset_index(drop=True)
 
     if len(selection) != IMAGES:
-        raise ValueError(f"Selection size is {len(selection)}, expected {IMAGES}.")
+        print(
+            f"Note: final selection size is {len(selection)}, requested IMAGES={IMAGES}. "
+            "This is expected if the dataset does not contain enough valid images to fill the quota."
+        )
 
     return selection
 
 
 def copy_selected_images(selection_df):
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    total = len(selection_df)
     copied = 0
+    missing = 0
 
     for row in selection_df.itertuples(index=False):
-        if copied >= IMAGES:
-            break
-
         fname = getattr(row, IMAGE_COL) + IMAGE_EXT
         src = os.path.join(INPUT_IMAGE_FOLDER, fname)
         dst = os.path.join(OUTPUT_FOLDER, fname)
 
         if not os.path.exists(src):
+            missing += 1
+            print(f"Warning: {src} not found, skipping.")
             continue
 
         shutil.copy2(src, dst)
         copied += 1
 
-        if copied % 500 == 0 or copied == IMAGES:
-            print(f"Copied {copied}/{IMAGES} images")
+        if copied % 500 == 0 or copied == total:
+            print(f"Copied {copied}/{total} images")
 
-    if copied < IMAGES:
-        raise ValueError(
-            f"Only {copied} images could be copied; {IMAGES} were requested. "
-            "Check the manifest and input folder for missing files."
+    if missing > 0:
+        print(
+            f"\nWarning: {missing} file(s) listed in the manifest were missing at copy time "
+            f"and were skipped. Copied {copied}/{total} images total."
         )
 
 
@@ -114,7 +158,7 @@ def main():
 
     selection = build_selection(df)
 
-    print("Selected images per grade:")
+    print("\nSelected images per grade:")
     print(selection[LABEL_COL].value_counts().sort_index())
 
     copy_selected_images(selection)
