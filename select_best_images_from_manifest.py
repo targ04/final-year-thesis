@@ -2,7 +2,12 @@
 Reads the sharpness manifest CSV and copies the top-quality images by DR grade
 from the input folder to the output folder.
 
-This version preserves most of the grade 3 and grade 4 images, allocates the
+This version also reads the crop-stage rejects CSV (produced by
+crop_and_resize.py for structurally invalid/composite images) and excludes
+any rejected filenames from selection, even if they happen to still appear
+in the sharpness manifest or on disk.
+
+It preserves most of the grade 3 and grade 4 images, allocates the
 remaining budget across grades 0/1/2 using the same quota logic as the
 original selection script, and ignores missing files so that as close to
 IMAGES images as possible are copied when enough valid files exist.
@@ -22,7 +27,8 @@ import pandas as pd
 IMAGES = 15000
 INPUT_IMAGE_FOLDER = r"D:\Thesis Dataset\cropped and resized"
 MANIFEST_CSV_PATH = r"D:\Thesis Dataset\labels\sharpness_manifest.csv"
-OUTPUT_FOLDER = r"D:\Thesis Dataset\best images"
+REJECTS_CSV_PATH = r"D:\Thesis Dataset\labels\crop_rejects.csv"
+OUTPUT_FOLDER = r"D:\Thesis Dataset\best quality images"
 
 IMAGE_COL = "image"
 LABEL_COL = "level"
@@ -38,9 +44,34 @@ def extract_patient_id(filename):
     return filename.split("_")[0]
 
 
-def build_selection(df):
+def load_rejected_image_names():
+    """
+    Reads the crop-stage rejects CSV and returns a set of image names
+    (without extension, matching IMAGE_COL format in the manifest) that
+    should be excluded from selection.
+    """
+    if not os.path.exists(REJECTS_CSV_PATH):
+        print(f"No rejects CSV found at {REJECTS_CSV_PATH}, skipping reject filtering.")
+        return set()
+
+    rejects_df = pd.read_csv(REJECTS_CSV_PATH)
+    if "filename" not in rejects_df.columns:
+        print(f"Warning: {REJECTS_CSV_PATH} has no 'filename' column, skipping reject filtering.")
+        return set()
+
+    # Rejects CSV stores full filenames with extension (e.g. "16028_left.png");
+    # manifest's IMAGE_COL stores names without extension. Normalize to match.
+    rejected_names = set(
+        rejects_df["filename"].apply(lambda f: os.path.splitext(f)[0])
+    )
+    print(f"Loaded {len(rejected_names)} rejected image name(s) from {REJECTS_CSV_PATH}.")
+    return rejected_names
+
+
+def build_selection(df, rejected_names):
     df = df.copy()
     df = df[df["image_exists"]].copy()
+    df = df[~df[IMAGE_COL].isin(rejected_names)].copy()
     df["patient_id"] = df[IMAGE_COL].apply(extract_patient_id)
 
     reserved_pool = df[df[LABEL_COL].isin([3, 4])].copy()
@@ -68,11 +99,6 @@ def build_selection(df):
     selection = selection.drop_duplicates(subset=[IMAGE_COL]).reset_index(drop=True)
 
     # --- Proportional backfill for rounding shortfall ---
-    # int() truncation in the quota pass above almost always leaves a small
-    # gap versus IMAGES. Fill that gap from grades 0/1/2 in the same
-    # proportions as FRACTIONS_FOR_MAJORITY_CLASSES, using each grade's next
-    # best-remaining images, instead of pulling from the unrestricted pool
-    # (which would silently skew the selection back toward grade 0).
     if len(selection) < IMAGES:
         shortfall = IMAGES - len(selection)
         print(f"Backfilling {shortfall} image(s) proportionally across grades 0/1/2...")
@@ -156,7 +182,9 @@ def main():
     df = pd.read_csv(MANIFEST_CSV_PATH)
     df = df[[IMAGE_COL, LABEL_COL, "patient_id", "quality_score", "image_exists"]].dropna()
 
-    selection = build_selection(df)
+    rejected_names = load_rejected_image_names()
+
+    selection = build_selection(df, rejected_names)
 
     print("\nSelected images per grade:")
     print(selection[LABEL_COL].value_counts().sort_index())
