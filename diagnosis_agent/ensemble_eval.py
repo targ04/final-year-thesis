@@ -4,11 +4,16 @@ trained ViT-B/16 (both fine-tuned for 5-class DR severity grading) over the
 same manifest, and reports quadratic weighted kappa + accuracy for:
   - ResNet-50 alone
   - ViT-B/16 alone
-  - Ensemble (softmax-averaged)
+  - Ensemble, swept across a grid of (resnet_weight, vit_weight) combinations
 
-Also saves per-image ensemble probabilities and predictions to a CSV, since
-the Referral Agent's temperature scaling step will need the raw averaged
-probabilities/logits, not just the final metric.
+Both models only need to run inference ONCE — the weight sweep just
+recombines the same two probability arrays with different weights, so this
+is cheap even with a fine-grained grid.
+
+Also saves per-image ensemble probabilities and predictions (using the
+best-performing weight found) to a CSV, since the Referral Agent's
+temperature scaling step will need the raw averaged probabilities/logits,
+not just the final metric.
 
 Usage:
     python ensemble_eval.py
@@ -38,8 +43,8 @@ IMAGE_EXT = ".png"
 RESNET_WEIGHTS_PATH = BASE_DIR / "resnet50" / "best_model.pt"
 VIT_WEIGHTS_PATH = BASE_DIR / "vitb" / "run2" / "best_model.pt"
 
-OUTPUT_CSV_PATH = r"ensemble_val_predictions.csv"
-
+OUTPUT_CSV_PATH = BASE_DIR / "new_ensemble_val_predictions.csv"
+SWEEP_CSV_PATH = BASE_DIR / "ensemble_weight_sweep.csv"
 IMAGE_COL = "image"
 LABEL_COL = "level"
 NUM_CLASSES = 5
@@ -50,11 +55,10 @@ VIT_INPUT_SIZE = 224
 BATCH_SIZE = 32
 NUM_WORKERS = 4
 
-# Weight given to each model's softmax output when averaging.
-# 0.5/0.5 = simple average. Adjust later if one model consistently
-# outperforms the other and you want a weighted ensemble instead.
-RESNET_WEIGHT = 0.5
-VIT_WEIGHT = 0.5
+# Weight grid to sweep over. RESNET_WEIGHT ranges from 0.0 to 1.0 in steps of
+# WEIGHT_STEP; VIT_WEIGHT is always (1 - RESNET_WEIGHT), so the two always
+# sum to 1 and every combination is still a proper weighted average.
+WEIGHT_STEP = 0.05
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -137,6 +141,35 @@ def report_metrics(name, labels, preds):
     return kappa, acc
 
 
+def sweep_weights(resnet_probs, vit_probs, labels, weight_step):
+    """Tries every (resnet_weight, vit_weight) pair with vit_weight = 1 -
+    resnet_weight, stepping resnet_weight from 0.0 to 1.0. Returns a results
+    DataFrame (sorted best-first by kappa) and the best row as a dict."""
+    results = []
+    num_steps = int(round(1.0 / weight_step))
+
+    for i in range(num_steps + 1):
+        resnet_weight = round(i * weight_step, 4)
+        vit_weight = round(1.0 - resnet_weight, 4)
+
+        ensemble_probs = resnet_weight * resnet_probs + vit_weight * vit_probs
+        ensemble_preds = ensemble_probs.argmax(axis=1)
+
+        kappa = cohen_kappa_score(labels, ensemble_preds, weights="quadratic")
+        acc = accuracy_score(labels, ensemble_preds)
+
+        results.append({
+            "resnet_weight": resnet_weight,
+            "vit_weight": vit_weight,
+            "kappa": kappa,
+            "accuracy": acc,
+        })
+
+    results_df = pd.DataFrame(results).sort_values("kappa", ascending=False).reset_index(drop=True)
+    best_row = results_df.iloc[0].to_dict()
+    return results_df, best_row
+
+
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -168,17 +201,35 @@ def main():
         "check that both loaders use shuffle=False and the same manifest."
     )
 
-    # --- Ensemble ---
-    ensemble_probs = RESNET_WEIGHT * resnet_probs + VIT_WEIGHT * vit_probs
-    ensemble_preds = ensemble_probs.argmax(axis=1)
-
     resnet_preds = resnet_probs.argmax(axis=1)
     vit_preds = vit_probs.argmax(axis=1)
 
-    print("\n--- Results ---")
+    print("\n--- Solo model results ---")
     report_metrics("ResNet-50 (solo)", labels, resnet_preds)
     report_metrics("ViT-B/16 (solo)", labels, vit_preds)
-    report_metrics("Ensemble (avg)", labels, ensemble_preds)
+
+    # --- Weight sweep ---
+    print(f"\n--- Ensemble weight sweep (step={WEIGHT_STEP}) ---")
+    sweep_df, best = sweep_weights(resnet_probs, vit_probs, labels, WEIGHT_STEP)
+    print(sweep_df.to_string(index=False, formatters={
+        "resnet_weight": "{:.2f}".format,
+        "vit_weight": "{:.2f}".format,
+        "kappa": "{:.4f}".format,
+        "accuracy": "{:.4f}".format,
+    }))
+
+    sweep_df.to_csv(SWEEP_CSV_PATH, index=False)
+    print(f"\nFull sweep results saved to {SWEEP_CSV_PATH}")
+
+    print(f"\nBest weight combo: resnet_weight={best['resnet_weight']:.2f}, "
+          f"vit_weight={best['vit_weight']:.2f} "
+          f"| quadratic kappa = {best['kappa']:.4f} | accuracy = {best['accuracy']:.4f}")
+
+    # --- Recompute the ensemble at the best weight for the saved predictions CSV ---
+    best_resnet_weight = best["resnet_weight"]
+    best_vit_weight = best["vit_weight"]
+    ensemble_probs = best_resnet_weight * resnet_probs + best_vit_weight * vit_probs
+    ensemble_preds = ensemble_probs.argmax(axis=1)
 
     # --- Save per-image predictions + probabilities for downstream use
     # (e.g. temperature scaling calibration for the Referral Agent) ---
@@ -195,7 +246,7 @@ def main():
         out_df[f"vit_prob_class{c}"] = vit_probs[:, c]
 
     out_df.to_csv(OUTPUT_CSV_PATH, index=False)
-    print(f"\nPer-image predictions and probabilities saved to {OUTPUT_CSV_PATH}")
+    print(f"Per-image predictions and probabilities (at best weight) saved to {OUTPUT_CSV_PATH}")
 
 
 if __name__ == "__main__":
