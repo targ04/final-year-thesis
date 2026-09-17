@@ -26,7 +26,7 @@ import random
 import pandas as pd
 
 # ---------------- CONFIG ----------------
-MANIFEST_CSV_PATH = r"D:\Thesis Dataset\final dataset\selected_manifest.csv"
+MANIFEST_CSV_PATH = r"D:\Thesis Dataset\extended dataset\selected_manifest.csv"
 OUTPUT_DIR = r"D:\Thesis Dataset\final dataset\splits"
 
 IMAGE_COL = "image"

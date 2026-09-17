@@ -24,11 +24,11 @@ import shutil
 import pandas as pd
 
 # ---------------- CONFIG ----------------
-IMAGES = 15000
+IMAGES = 25000
 INPUT_IMAGE_FOLDER = r"D:\Thesis Dataset\cropped and resized"
 MANIFEST_CSV_PATH = r"D:\Thesis Dataset\labels\sharpness_manifest.csv"
 REJECTS_CSV_PATH = r"D:\Thesis Dataset\labels\crop_rejects.csv"
-OUTPUT_FOLDER = r"D:\Thesis Dataset\best quality images"
+OUTPUT_FOLDER = r"D:\Thesis Dataset\extended dataset"
 
 IMAGE_COL = "image"
 LABEL_COL = "level"
@@ -36,7 +36,7 @@ IMAGE_EXT = ".png"
 
 # Fraction of the remaining budget (after reserving all grade 3 & 4 images)
 # allocated to grades 0, 1, 2. Must sum to 1.0.
-FRACTIONS_FOR_MAJORITY_CLASSES = {0: 0.35, 1: 0.30, 2: 0.35}
+FRACTIONS_FOR_MAJORITY_CLASSES = {0: 0.355, 1: 0.29, 2: 0.355}
 # -----------------------------------------
 
 
