@@ -1,3 +1,5 @@
 diagnosis_agent/resnet50/
 diagnosis_agent/vitb
 diagnosis_agent/__pycache__
+explanation_agent/vector_store_bge
+explanation_agent/vector_store_minilm
