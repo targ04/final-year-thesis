@@ -153,6 +153,14 @@ def looks_like_noise_page(text):
     findings, just not always the first thing a referral-interval query
     should surface. That's a ranking/retrieval-quality question (addressed
     via chunking + embedding model), not a page-exclusion one.
+
+    A third category IS filtered here: PRISMA-style evidence-review-
+    methodology pages (e.g. "Records identified through PubMed search
+    (n = 4,112) ... Records screened ... Records excluded"). These describe
+    how the guideline document itself was compiled, not clinical guidance -
+    closer to ToC/bibliography (zero grounding value) than to an appendix
+    (real trial findings), and were observed leaking into top-4 retrieval
+    results for unrelated clinical queries.
     """
     citation_signature = re.compile(r"\d{4};\d+(\(\d+\))?:\d+", re.IGNORECASE)
     cochrane_signature = re.compile(r"\d{4}:[A-Z]{2,4}\d+")
@@ -162,6 +170,14 @@ def looks_like_noise_page(text):
     et_al_hits = len(et_al_pattern.findall(text))
 
     if citation_hits >= 3 or et_al_hits >= 3:
+        return True
+
+    # PRISMA evidence-flow-diagram signature: these pages repeat
+    # "Records identified / screened / excluded / included" alongside
+    # literal sample-size counts - a pattern that essentially never
+    # appears in actual clinical guidance text.
+    prisma_pattern = re.compile(r"Records\s+(identified|screened|excluded|included)", re.IGNORECASE)
+    if len(prisma_pattern.findall(text)) >= 2:
         return True
 
     lines = [ln.strip() for ln in text.split("\n") if ln.strip()]
@@ -186,7 +202,7 @@ def looks_like_noise_page(text):
 # you spot bad pages still coming through after the automatic filter.
 MANUAL_EXCLUDE_PAGES = {
     "ICO Guidelines for Diabetic Eye Care (2017)": {3, 4},  # confirmed table-of-contents pages
-    "AAO Preferred Practice Pattern: Diabetic Retinopathy (2024)": set(),
+    "AAO Preferred Practice Pattern: Diabetic Retinopathy (2024)": {3},  # front-matter/methodology preamble ("Committee members reviewed and discussed...") - no clinical content, recurring noise hit
 }
 
 
