@@ -36,15 +36,15 @@ from sklearn.metrics import cohen_kappa_score, accuracy_score
 # EDIT THESE PATHS
 BASE_DIR = Path(__file__).resolve().parent
 
-MANIFEST_PATH = r"D:\Thesis Dataset\final dataset\splits\val_manifest.csv"  # or test_manifest.csv
+MANIFEST_PATH = r"D:\Thesis Dataset\final dataset\splits\test_manifest.csv"  # or test_manifest.csv
 IMAGE_FOLDER = r"D:\Thesis Dataset\final dataset\images"
 IMAGE_EXT = ".png"
 
 RESNET_WEIGHTS_PATH = BASE_DIR / "resnet50" / "best_model.pt"
 VIT_WEIGHTS_PATH = BASE_DIR / "vitb" / "run2" / "best_model.pt"
 
-OUTPUT_CSV_PATH = BASE_DIR / "new_ensemble_val_predictions.csv"
-SWEEP_CSV_PATH = BASE_DIR / "ensemble_weight_sweep.csv"
+OUTPUT_CSV_PATH = BASE_DIR / "new_ensemble_test_predictions.csv"
+SWEEP_CSV_PATH = BASE_DIR / "xensemble_weight_sweep.csv"
 IMAGE_COL = "image"
 LABEL_COL = "level"
 NUM_CLASSES = 5
@@ -55,10 +55,9 @@ VIT_INPUT_SIZE = 224
 BATCH_SIZE = 32
 NUM_WORKERS = 4
 
-# Weight grid to sweep over. RESNET_WEIGHT ranges from 0.0 to 1.0 in steps of
-# WEIGHT_STEP; VIT_WEIGHT is always (1 - RESNET_WEIGHT), so the two always
-# sum to 1 and every combination is still a proper weighted average.
-WEIGHT_STEP = 0.05
+# Fixed ensemble weighting: only this combination will be used.
+RESNET_WEIGHT = 0.6
+VIT_WEIGHT = 0.4
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
@@ -142,30 +141,19 @@ def report_metrics(name, labels, preds):
 
 
 def sweep_weights(resnet_probs, vit_probs, labels, weight_step):
-    """Tries every (resnet_weight, vit_weight) pair with vit_weight = 1 -
-    resnet_weight, stepping resnet_weight from 0.0 to 1.0. Returns a results
-    DataFrame (sorted best-first by kappa) and the best row as a dict."""
-    results = []
-    num_steps = int(round(1.0 / weight_step))
+    """Uses a single fixed ensemble weighting for ResNet and ViT."""
+    ensemble_probs = RESNET_WEIGHT * resnet_probs + VIT_WEIGHT * vit_probs
+    ensemble_preds = ensemble_probs.argmax(axis=1)
 
-    for i in range(num_steps + 1):
-        resnet_weight = round(i * weight_step, 4)
-        vit_weight = round(1.0 - resnet_weight, 4)
+    kappa = cohen_kappa_score(labels, ensemble_preds, weights="quadratic")
+    acc = accuracy_score(labels, ensemble_preds)
 
-        ensemble_probs = resnet_weight * resnet_probs + vit_weight * vit_probs
-        ensemble_preds = ensemble_probs.argmax(axis=1)
-
-        kappa = cohen_kappa_score(labels, ensemble_preds, weights="quadratic")
-        acc = accuracy_score(labels, ensemble_preds)
-
-        results.append({
-            "resnet_weight": resnet_weight,
-            "vit_weight": vit_weight,
-            "kappa": kappa,
-            "accuracy": acc,
-        })
-
-    results_df = pd.DataFrame(results).sort_values("kappa", ascending=False).reset_index(drop=True)
+    results_df = pd.DataFrame([{
+        "resnet_weight": RESNET_WEIGHT,
+        "vit_weight": VIT_WEIGHT,
+        "kappa": kappa,
+        "accuracy": acc,
+    }])
     best_row = results_df.iloc[0].to_dict()
     return results_df, best_row
 
@@ -208,9 +196,9 @@ def main():
     report_metrics("ResNet-50 (solo)", labels, resnet_preds)
     report_metrics("ViT-B/16 (solo)", labels, vit_preds)
 
-    # --- Weight sweep ---
-    print(f"\n--- Ensemble weight sweep (step={WEIGHT_STEP}) ---")
-    sweep_df, best = sweep_weights(resnet_probs, vit_probs, labels, WEIGHT_STEP)
+    # --- Fixed ensemble weights ---
+    print("\n--- Fixed ensemble weights ---")
+    sweep_df, best = sweep_weights(resnet_probs, vit_probs, labels, 0.0)
     print(sweep_df.to_string(index=False, formatters={
         "resnet_weight": "{:.2f}".format,
         "vit_weight": "{:.2f}".format,
@@ -219,13 +207,13 @@ def main():
     }))
 
     sweep_df.to_csv(SWEEP_CSV_PATH, index=False)
-    print(f"\nFull sweep results saved to {SWEEP_CSV_PATH}")
+    print(f"\nFixed ensemble results saved to {SWEEP_CSV_PATH}")
 
-    print(f"\nBest weight combo: resnet_weight={best['resnet_weight']:.2f}, "
+    print(f"\nUsing fixed weights: resnet_weight={best['resnet_weight']:.2f}, "
           f"vit_weight={best['vit_weight']:.2f} "
           f"| quadratic kappa = {best['kappa']:.4f} | accuracy = {best['accuracy']:.4f}")
 
-    # --- Recompute the ensemble at the best weight for the saved predictions CSV ---
+    # --- Recompute the ensemble at the fixed weight for the saved predictions CSV ---
     best_resnet_weight = best["resnet_weight"]
     best_vit_weight = best["vit_weight"]
     ensemble_probs = best_resnet_weight * resnet_probs + best_vit_weight * vit_probs
