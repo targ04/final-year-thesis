@@ -1,0 +1,43 @@
+split,model,grade,precision,recall,F1,support
+val,resnet,0 No DR,0.8339,0.9048,0.8679,588
+val,resnet,1 Mild,0.6791,0.6912,0.6851,502
+val,resnet,2 Moderate,0.6896,0.643,0.6655,577
+val,resnet,3 Severe,0.6461,0.7419,0.6907,310
+val,resnet,4 PDR,0.7547,0.5755,0.6531,278
+val,resnet,macro avg,0.7207,0.7113,0.7124,2255
+val,resnet,weighted avg,0.7269,0.7273,0.7246,2255
+val,vit,0 No DR,0.8096,0.9184,0.8606,588
+val,vit,1 Mild,0.6791,0.5438,0.604,502
+val,vit,2 Moderate,0.6142,0.6014,0.6077,577
+val,vit,3 Severe,0.6124,0.7645,0.6801,310
+val,vit,4 PDR,0.7564,0.6367,0.6914,278
+val,vit,macro avg,0.6943,0.693,0.6887,2255
+val,vit,weighted avg,0.6969,0.698,0.6931,2255
+val,ensemble,0 No DR,0.8198,0.9286,0.8708,588
+val,ensemble,1 Mild,0.7199,0.6554,0.6861,502
+val,ensemble,2 Moderate,0.6835,0.6551,0.669,577
+val,ensemble,3 Severe,0.6639,0.771,0.7134,310
+val,ensemble,4 PDR,0.7945,0.6259,0.7002,278
+val,ensemble,macro avg,0.7363,0.7272,0.7279,2255
+val,ensemble,weighted avg,0.7382,0.7388,0.7354,2255
+test,resnet,0 No DR,0.7963,0.8951,0.8428,572
+test,resnet,1 Mild,0.654,0.6102,0.6314,508
+test,resnet,2 Moderate,0.6561,0.6171,0.636,572
+test,resnet,3 Severe,0.6145,0.719,0.6627,306
+test,resnet,4 PDR,0.8018,0.6454,0.7151,282
+test,resnet,macro avg,0.7045,0.6974,0.6976,2240
+test,resnet,weighted avg,0.7041,0.704,0.7014,2240
+test,vit,0 No DR,0.7786,0.9406,0.8519,572
+test,vit,1 Mild,0.6917,0.5079,0.5857,508
+test,vit,2 Moderate,0.5957,0.5874,0.5915,572
+test,vit,3 Severe,0.6037,0.6471,0.6246,306
+test,vit,4 PDR,0.7183,0.7234,0.7208,282
+test,vit,macro avg,0.6776,0.6813,0.6749,2240
+test,vit,weighted avg,0.6807,0.6848,0.6775,2240
+test,ensemble,0 No DR,0.7959,0.9476,0.8651,572
+test,ensemble,1 Mild,0.7073,0.5945,0.646,508
+test,ensemble,2 Moderate,0.6619,0.6434,0.6525,572
+test,ensemble,3 Severe,0.6646,0.7124,0.6877,306
+test,ensemble,4 PDR,0.7984,0.7021,0.7472,282
+test,ensemble,macro avg,0.7256,0.72,0.7197,2240
+test,ensemble,weighted avg,0.724,0.7268,0.722,2240

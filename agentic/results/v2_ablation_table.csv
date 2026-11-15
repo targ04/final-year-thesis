@@ -1,0 +1,5 @@
+policy,auto_clear,missed_referable,miss_rate_%,referral_recall_%,workload_%,verified_referrals,tool_calls,tool_calls_per_candidate
+"Static triage (v2 gate, no verification)",423,13,3.07,98.88,81.12,0,0,0.0
++ lesion gate,405,12,2.96,98.97,81.92,18,0,0.0
++ lesion gate + all tools (fixed rule),352,10,2.84,99.14,84.29,71,662,1.57
++ lesion gate + LLM planner,352,10,2.84,99.14,84.29,71,662,1.57

@@ -1,0 +1,7 @@
+group,n,backbones agree on quadrant_%,accuracy when agree_%,accuracy when disagree_%,median ResNet concentration,median ViT concentration
+all,2240,33.7,71.9,73.1,0.367,0.141
+true grade 0,572,31.8,94.0,95.1,0.366,0.139
+true grade 1,508,34.1,63.0,57.6,0.362,0.144
+true grade 2,572,33.6,62.0,65.5,0.415,0.139
+true grade 3,306,38.6,67.8,73.4,0.335,0.142
+true grade 4,282,31.6,70.8,69.9,0.34,0.144

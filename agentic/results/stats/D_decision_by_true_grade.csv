@@ -1,0 +1,19 @@
+policy,decision,true 0,true 1,true 2,true 3,true 4
+v1 gate (midsem),AUTO_CLEAR,292,88,16,0,0
+v1 gate (midsem),REFER_LOW_CONFIDENCE,268,304,132,4,4
+v1 gate (midsem),REFER_SEVERITY,12,116,424,302,278
+v2 gate,AUTO_CLEAR,348,62,13,0,0
+v2 gate,REFER_LOW_CONFIDENCE,212,330,135,5,4
+v2 gate,REFER_SEVERITY,12,116,424,301,278
+v2 gate + lesion,AUTO_CLEAR,336,57,12,0,0
+v2 gate + lesion,REFER_LOW_CONFIDENCE,212,330,135,5,4
+v2 gate + lesion,REFER_VERIFIED,12,5,1,0,0
+v2 gate + lesion,REFER_SEVERITY,12,116,424,301,278
+v2 gate + lesion + all tools,AUTO_CLEAR,299,43,10,0,0
+v2 gate + lesion + all tools,REFER_LOW_CONFIDENCE,212,330,135,5,4
+v2 gate + lesion + all tools,REFER_VERIFIED,49,19,3,0,0
+v2 gate + lesion + all tools,REFER_SEVERITY,12,116,424,301,278
+v2 gate + lesion + LLM planner (final),AUTO_CLEAR,299,43,10,0,0
+v2 gate + lesion + LLM planner (final),REFER_LOW_CONFIDENCE,212,330,135,5,4
+v2 gate + lesion + LLM planner (final),REFER_VERIFIED,49,19,3,0,0
+v2 gate + lesion + LLM planner (final),REFER_SEVERITY,12,116,424,301,278

@@ -1,0 +1,6 @@
+true,pred 0,pred 1,pred 2,pred 3,pred 4
+0 No DR,546,19,21,1,1
+1 Mild,67,329,94,10,2
+2 Moderate,49,100,378,40,10
+3 Severe,2,4,33,239,32
+4 PDR,2,5,27,70,174

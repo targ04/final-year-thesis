@@ -1,0 +1,4 @@
+policy A,policy B,misses A,misses B,caught by B only,caught by A only,misses avoided (A-B) [95% CI],exact McNemar p
+v1 gate (midsem),v2 gate,16,13,7,4,"3 [-4, 10]",0.5488
+v2 gate,v2 gate + lesion + LLM planner (final),13,10,3,0,"3 [0, 7]",0.25
+v1 gate (midsem),v2 gate + lesion + LLM planner (final),16,10,8,2,"6 [0, 13]",0.1094

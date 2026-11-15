@@ -1,0 +1,11 @@
+split,model,n,accuracy,QWK,linear_kappa,MAE_grades,exact_%,off_by_1_%,off_by_2+_%
+val,resnet,2255,"72.7% [70.7, 74.7]","0.8548 [0.8362, 0.8714]",0.7677,0.342,72.73,21.33,5.94
+val,vit,2255,"69.8% [67.6, 71.9]","0.8398 [0.8203, 0.8565]",0.7429,0.384,69.8,22.84,7.36
+val,ensemble,2255,"73.9% [71.9, 75.9]","0.8640 [0.8463, 0.8801]",0.7789,0.328,73.88,20.18,5.94
+val,McNemar ensemble vs resnet,2255,"ensemble-only correct 113, resnet-only correct 87",exact p = 0.07684,,,,,
+val,McNemar ensemble vs vit,2255,"ensemble-only correct 200, vit-only correct 108",exact p = 1.763e-07,,,,,
+test,resnet,2240,"70.4% [68.3, 72.5]","0.8632 [0.8472, 0.8779]",0.7605,0.355,70.4,24.02,5.58
+test,vit,2240,"68.5% [66.4, 70.6]","0.8449 [0.8275, 0.8616]",0.7386,0.397,68.48,23.84,7.68
+test,ensemble,2240,"72.7% [70.6, 74.7]","0.8723 [0.8559, 0.8875]",0.7779,0.333,72.68,21.7,5.62
+test,McNemar ensemble vs resnet,2240,"ensemble-only correct 138, resnet-only correct 87",exact p = 0.0008197,,,,,
+test,McNemar ensemble vs vit,2240,"ensemble-only correct 209, vit-only correct 115",exact p = 1.973e-07,,,,,

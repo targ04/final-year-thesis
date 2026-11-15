@@ -1,0 +1,3 @@
+split,ICO interval exact,within one step,later than correct (under-triage),2+ steps later,true PDR flagged urgent (<3 mo),urgent cases in first half of referral queue
+val,"73.9% [71.9, 75.9]","94.1% [93.0, 95.1]","15.9% [14.3, 17.6]","3.95% [3.14, 4.87]","87.8% [83.3, 91.7]","91.5% [88.9, 93.6]"
+test,"72.7% [70.6, 74.7]","94.4% [93.2, 95.4]","17.0% [15.2, 18.8]","3.53% [2.70, 4.38]","90.8% [86.8, 94.3]","90.0% [87.2, 92.7]"

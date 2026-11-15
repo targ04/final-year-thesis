@@ -1,0 +1,6 @@
+policy,clear rate | true 0,clear rate | true 1,clear rate | true 2,clear rate | true 3,clear rate | true 4,projected auto-clear rate,projected specialist workload,projected miss rate among cleared,"missed referable per 1,000 screened","referable per 1,000 screened"
+v1 gate (midsem),51.0%,17.3%,2.8%,0.0%,0.0%,39.2%,60.8%,1.06%,4.1,193.4
+v2 gate,60.8%,12.2%,2.3%,0.0%,0.0%,46.0%,54.0%,0.73%,3.4,193.4
+v2 gate + lesion,58.7%,11.2%,2.1%,0.0%,0.0%,44.4%,55.6%,0.70%,3.1,193.4
+v2 gate + lesion + all tools,52.3%,8.5%,1.7%,0.0%,0.0%,39.4%,60.6%,0.66%,2.6,193.4
+v2 gate + lesion + LLM planner (final),52.3%,8.5%,1.7%,0.0%,0.0%,39.4%,60.6%,0.66%,2.6,193.4

@@ -1,0 +1,15 @@
+split,policy,auto_clear,missed_referable,safety_net_miss_rate_%,referral_recall_%,referral_workload_%,verifier_overrides
+val,"P0-v1 static, midsem gate (top-grade>=0.85)",413,11,2.66,99.06,81.69,0
+val,"P0 static, v2 gate (P(0+1)>=0.94)",410,10,2.44,99.14,81.82,0
+val,P1 tighter-conf (thr=0.947),386,8,2.07,99.31,82.88,0
+val,P2 +fellow-eye,403,7,1.74,99.4,82.13,7
+val,P3 +lesion (MA_count>11),387,6,1.55,99.48,82.84,23
+val,P1b tighter-conf matched to P4 (thr=0.949),381,8,2.1,99.31,83.1,0
+val,P4 +lesion+fellow,382,4,1.05,99.66,83.06,28
+test,"P0-v1 static, midsem gate (top-grade>=0.85)",396,16,4.04,98.62,82.32,0
+test,"P0 static, v2 gate (P(0+1)>=0.94)",423,13,3.07,98.88,81.12,0
+test,P1 tighter-conf (thr=0.945),404,13,3.22,98.88,81.96,0
+test,P2 +fellow-eye,412,10,2.43,99.14,81.61,11
+test,P3 +lesion (MA_count>11),405,12,2.96,98.97,81.92,18
+test,P1b tighter-conf matched to P4 (thr=0.947),395,13,3.29,98.88,82.37,0
+test,P4 +lesion+fellow,396,10,2.53,99.14,82.32,27

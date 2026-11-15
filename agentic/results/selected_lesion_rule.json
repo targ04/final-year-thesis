@@ -1,0 +1,6 @@
+{
+  "feature": "MA_count",
+  "threshold": 11.0,
+  "percentile": 95,
+  "selected_on": "val"
+}

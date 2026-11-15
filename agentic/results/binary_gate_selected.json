@@ -1,0 +1,6 @@
+{
+  "rule": "nonref_sum",
+  "threshold": 0.94,
+  "selected_on": "val",
+  "criterion": "lowest P(grade0+grade1) threshold with val misses <= v1 gate's (11)"
+}

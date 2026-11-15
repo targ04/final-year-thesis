@@ -1,0 +1,9 @@
+path,images
+no verification (REFER_SEVERITY),1131
+no verification (REFER_LOW_CONFIDENCE),686
+lesion_check(ok) -> fellow_eye(ok) -> tta(ok) => AUTO_CLEAR,231
+lesion_check(ok) -> tta(ok) => AUTO_CLEAR,121
+lesion_check(ok) -> fellow_eye(ok) -> tta(X) => REFER_VERIFIED,26
+lesion_check(X) => REFER_VERIFIED,18
+lesion_check(ok) -> tta(X) => REFER_VERIFIED,18
+lesion_check(ok) -> fellow_eye(X) => REFER_VERIFIED,9

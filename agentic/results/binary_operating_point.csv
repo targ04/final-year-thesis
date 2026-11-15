@@ -1,0 +1,3 @@
+split,n,referable_prevalence_%,sensitivity_%,specificity_%,AUC_P(referable)
+val,2255,51.66,86.09,88.17,0.9475
+test,2240,51.79,86.55,88.15,0.948

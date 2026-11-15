@@ -1,0 +1,3 @@
+split,images,patients,patients with both eyes,images with fellow eye available_%,both eyes same grade_%,eyes differ by 1_%,eyes differ by 2+_%,referability differs between eyes_%
+val,2255,1456,799,70.9,84.2,12.8,3.0,6.9
+test,2240,1451,789,70.4,84.4,12.9,2.7,7.7

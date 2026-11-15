@@ -1,0 +1,2 @@
+auto_clear_candidates,planner_llm_calls,unusable_outputs_fallback,planner_action_counts,identical_tool_sequence_to_fixed_rule_%,stopped_before_fixed_rule_%,tool_calls_saved_vs_fixed,referrals_lost_by_stopping_early,of_which_truly_referable
+423,662,0,"{'tta': 396, 'fellow_eye': 266}",100.0,0.0,0,0,0

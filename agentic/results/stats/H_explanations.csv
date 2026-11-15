@@ -1,0 +1,11 @@
+group,n,pass_%,mean_attempts,first_attempt_pass_%,mean_words,mean_sentences,cites_ICO_Table_1_%
+all,2240,90.62,1.63,53.53,110.2,4.04,99.7
+predicted grade: 0,681,91.92,1.6,55.21,108.9,4.07,99.7
+predicted grade: 1,428,92.99,1.58,53.5,99.1,4.03,99.1
+predicted grade: 2,555,89.55,1.64,53.33,110.9,4.01,100.0
+predicted grade: 3,328,94.51,1.48,64.63,128.2,4.01,100.0
+predicted grade: 4,248,80.24,1.95,34.68,107.4,4.12,100.0
+decision: AUTO_CLEAR,352,94.03,1.63,53.12,107.9,4.05,99.7
+decision: REFER_LOW_CONFIDENCE,686,91.11,1.59,54.37,103.5,4.06,99.3
+decision: REFER_SEVERITY,1131,88.95,1.66,52.52,115.1,4.03,100.0
+decision: REFER_VERIFIED,71,95.77,1.46,63.38,107.2,4.03,100.0

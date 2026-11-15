@@ -1,0 +1,3 @@
+split,urgent_prevalence_%,urgent(grade>=3)_sensitivity_%,urgent_specificity_%,urgent_AUC,AUC_urgent_vs_moderate_within_referable,ICO_interval_exact_%,ICO_interval_within_one_step_%,interval_later_than_correct_%,interval_two+_steps_later_%,true_severe_given_urgent_interval_%,true_PDR_given_urgent_interval_%,true_PDR_given_<1_month_%,urgent_cases_in_first_half_of_queue_%
+val,26.1,87.6,96.2,0.977,0.955,73.9,94.1,15.9,3.95,87.4,87.8,62.6,91.5
+test,26.2,85.5,95.6,0.972,0.944,72.7,94.4,17.0,3.53,80.7,90.8,70.2,90.0

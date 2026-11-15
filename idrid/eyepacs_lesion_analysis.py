@@ -49,7 +49,7 @@ from train_lesion_unet import (
 )
 
 # ---------------- CONFIG ----------------
-SPLIT = "val"      # "val" for decisions, "test" for the final reported run
+SPLIT = "test"      # "val" for decisions, "test" for the final reported run
 
 SPLIT_DIR = Path(r"E:\Thesis Dataset\final dataset\splits")
 MANIFEST_PATH = SPLIT_DIR / f"{SPLIT}_manifest.csv"
