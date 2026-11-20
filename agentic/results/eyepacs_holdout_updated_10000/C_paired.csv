@@ -1,0 +1,4 @@
+,comparison,misses_first,misses_second,missed_only_by_first,missed_only_by_second,misses_avoided,avoided_95CI,exact_McNemar_p
+0,top-grade gate vs verify-before-clear (thesis: p = 0.11),162,30,132,0,132,"[110, 155]",0.0
+1,binary gate vs verify-before-clear,35,30,5,0,5,"[1, 10]",0.0625
+2,matched threshold vs verify-before-clear,31,30,4,3,1,"[-4, 6]",1.0

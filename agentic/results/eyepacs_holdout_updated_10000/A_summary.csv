@@ -1,0 +1,10 @@
+,value
+images,9222
+patients,6632
+grades,"{0: 3333, 1: 2556, 2: 3333}"
+fellow_eye_available_%,98.8
+accuracy,0.3121
+QWK,0.3845
+AUC_referable,0.7283
+sens_referable_%,65.6
+spec_referable_%,60.8
