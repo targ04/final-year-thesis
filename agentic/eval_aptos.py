@@ -48,7 +48,7 @@ ID_COL, LABEL_COL = "id_code", "diagnosis"
 EXTS = (".png", ".jpg", ".jpeg")
 
 OUT_DIR = ROOT / "agentic" / "results" / "aptos"
-PREP_DIR = OUT_DIR / "images_512"                  # preprocessed images (same pipeline as EyePACS)
+PREP_DIR = APTOS_DIR / "preprocessed_512"          # preprocessed images, kept outside the repo (~1-2 GB)
 
 RESNET_WEIGHTS = ROOT / "diagnosis_agent" / "resnet50" / "best_model.pt"
 VIT_WEIGHTS = ROOT / "diagnosis_agent" / "vitb" / "run2" / "best_model.pt"
