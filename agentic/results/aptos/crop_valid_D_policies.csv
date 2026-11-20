@@ -1,0 +1,4 @@
+,policy,auto_cleared,missed_referable,miss_rate_%,referral_recall_%,clear_rate_%,overrides,overrides_referable,severe_or_PDR_cleared
+0,binary gate P_nr >= 0.94,12,0,0.0,100.0,0.3,0,0,0
+1,binary gate + lesion check,12,0,0.0,100.0,0.3,0,0,0
+2,"threshold only, matched clears (t=0.9413)",11,0,0.0,100.0,0.3,0,0,0

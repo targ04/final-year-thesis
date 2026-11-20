@@ -1,0 +1,3 @@
+,comparison,missed_only_by_first,missed_only_by_second,exact_McNemar_p
+0,gate vs gate+lesion,0,0,1.0
+1,matched threshold vs gate+lesion,0,0,1.0

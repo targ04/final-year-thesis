@@ -1,0 +1,5 @@
+,feature,spearman_vs_grade,AUC_grade>=2,AUC_grade>=3,median_grade0,median_grade4
+0,MA_count,0.808,0.936,0.817,2.0,38.0
+1,HE_count,0.741,0.902,0.846,2.0,27.0
+2,EX_count,0.735,0.914,0.794,2.0,38.0
+3,SE_count,0.589,0.81,0.792,0.0,3.0

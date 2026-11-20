@@ -1,0 +1,9 @@
+,t,threshold_only_clears,threshold_only_missed,verify_clears,verify_missed,matched_threshold_clears,matched_threshold_missed
+0,0.9,56,0,55,0,54,0
+1,0.91,44,0,43,0,42,0
+2,0.92,38,0,37,0,36,0
+3,0.93,26,0,25,0,24,0
+4,0.94,17,0,16,0,15,0
+5,0.95,9,0,8,0,7,0
+6,0.96,6,0,5,0,4,0
+7,0.97,2,0,2,0,1,0
