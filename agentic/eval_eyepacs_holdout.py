@@ -52,6 +52,7 @@ RESNET_WEIGHTS = ROOT / "diagnosis_agent" / "resnet50" / "best_model.pt"
 VIT_WEIGHTS = ROOT / "diagnosis_agent" / "vitb" / "run2" / "best_model.pt"
 RESNET_W, VIT_W = 0.6, 0.4
 BATCH_SIZE = 32
+NUM_WORKERS = 4             # image-loading processes; set to 0 if the DataLoader errors on Windows
 
 GATE_T = 0.94
 V1_T = 0.85
@@ -127,23 +128,26 @@ def preprocess(sel):
         cv2.imwrite(str(PREP_DIR / (n + ".png")), out)
         log.append({"image": n, "crop_valid": bool(valid), "crop_reason": reason})
         if i % 500 == 0 or i == len(todo):
-            print(f"  preprocessed {i}/{len(todo)}")
+            print(f"  preprocessed {i}/{len(todo)}", flush=True)
     append_cache(CROP_LOG, log)
 
 
 # ============================================================ 3. ensemble (cached per image)
 def predict(sel):
-    cache = read_cache(PRED_CACHE)
-    todo = [n for n in sel.image if n not in set(cache.image) and (PREP_DIR / (n + ".png")).exists()]
+    done = set(read_cache(PRED_CACHE).image)
+    todo = [n for n in sel.image if n not in done and (PREP_DIR / (n + ".png")).exists()]
     print(f"  {len(sel) - len(todo)} predictions cached, {len(todo)} to run")
     if not todo:
         return
+    print("  importing PyTorch ...", flush=True)
     import torch
     import torch.nn.functional as F
     from PIL import Image
     from torch.utils.data import DataLoader, Dataset
     from ensemble_eval import build_resnet50, build_vit_b, get_eval_transform, load_model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"  device: {device}" + (f" ({torch.cuda.get_device_name(0)})" if device.type == "cuda" else
+                                   "  <-- WARNING: no GPU visible to PyTorch, this will be slow"))
 
     class DS(Dataset):
         def __init__(self, tf): self.tf = tf
@@ -151,12 +155,20 @@ def predict(sel):
         def __getitem__(self, i): return self.tf(Image.open(PREP_DIR / (todo[i] + ".png")).convert("RGB"))
 
     @torch.no_grad()
-    def probs(model):
-        dl = DataLoader(DS(get_eval_transform(224)), batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
-        return np.concatenate([F.softmax(model(x.to(device)), 1).cpu().numpy() for x in dl])
+    def probs(model, name):
+        dl = DataLoader(DS(get_eval_transform(224)), batch_size=BATCH_SIZE, shuffle=False,
+                        num_workers=NUM_WORKERS, pin_memory=device.type == "cuda")
+        out, n_batches = [], len(dl)
+        for b, x in enumerate(dl, 1):
+            out.append(F.softmax(model(x.to(device, non_blocking=True)), 1).cpu().numpy())
+            if b % 20 == 0 or b == n_batches:
+                print(f"  {name}: batch {b}/{n_batches}", flush=True)
+        return np.concatenate(out)
 
-    rn = load_model(build_resnet50(5), RESNET_WEIGHTS, device); p_rn = probs(rn); del rn
-    vit = load_model(build_vit_b(5), VIT_WEIGHTS, device); p_vit = probs(vit)
+    print("  loading ResNet-50 ...", flush=True)
+    rn = load_model(build_resnet50(5), RESNET_WEIGHTS, device); p_rn = probs(rn, "ResNet-50"); del rn
+    print("  loading ViT-B/16 ...", flush=True)
+    vit = load_model(build_vit_b(5), VIT_WEIGHTS, device); p_vit = probs(vit, "ViT-B/16")
     out = pd.DataFrame({"image": todo})
     for name, P in [("resnet", p_rn), ("vit", p_vit), ("ensemble", RESNET_W * p_rn + VIT_W * p_vit)]:
         for k in range(5):
@@ -166,8 +178,8 @@ def predict(sel):
 
 # ============================================================ 4. lesions (cached per image)
 def lesions(sel):
-    cache = read_cache(LES_CACHE)
-    todo = [n for n in sel.image if n not in set(cache.image) and (PREP_DIR / (n + ".png")).exists()]
+    done = set(read_cache(LES_CACHE).image)
+    todo = [n for n in sel.image if n not in done and (PREP_DIR / (n + ".png")).exists()]
     print(f"  {len(sel) - len(todo)} lesion results cached, {len(todo)} to run")
     if not todo:
         return
@@ -190,7 +202,7 @@ def lesions(sel):
             rows.append({"image": n, **feat})
         append_cache(LES_CACHE, rows)            # written per batch, so an interrupted run resumes
         if (start // 8) % 100 == 0:
-            print(f"  lesions {min(start + 8, len(todo))}/{len(todo)}")
+            print(f"  lesions {min(start + 8, len(todo))}/{len(todo)}", flush=True)
 
 
 # ============================================================ 5. analyse
