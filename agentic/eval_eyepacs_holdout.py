@@ -133,6 +133,19 @@ def preprocess(sel):
 
 
 # ============================================================ 3. ensemble (cached per image)
+class ImageListDataset:
+    """Module-level (not nested) so DataLoader worker processes can pickle it on Windows."""
+    def __init__(self, names, folder, transform):
+        self.names, self.folder, self.transform = list(names), Path(folder), transform
+
+    def __len__(self):
+        return len(self.names)
+
+    def __getitem__(self, i):
+        from PIL import Image
+        return self.transform(Image.open(self.folder / (self.names[i] + ".png")).convert("RGB"))
+
+
 def predict(sel):
     done = set(read_cache(PRED_CACHE).image)
     todo = [n for n in sel.image if n not in done and (PREP_DIR / (n + ".png")).exists()]
@@ -142,21 +155,15 @@ def predict(sel):
     print("  importing PyTorch ...", flush=True)
     import torch
     import torch.nn.functional as F
-    from PIL import Image
-    from torch.utils.data import DataLoader, Dataset
+    from torch.utils.data import DataLoader
     from ensemble_eval import build_resnet50, build_vit_b, get_eval_transform, load_model
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"  device: {device}" + (f" ({torch.cuda.get_device_name(0)})" if device.type == "cuda" else
                                    "  <-- WARNING: no GPU visible to PyTorch, this will be slow"))
 
-    class DS(Dataset):
-        def __init__(self, tf): self.tf = tf
-        def __len__(self): return len(todo)
-        def __getitem__(self, i): return self.tf(Image.open(PREP_DIR / (todo[i] + ".png")).convert("RGB"))
-
     @torch.no_grad()
     def probs(model, name):
-        dl = DataLoader(DS(get_eval_transform(224)), batch_size=BATCH_SIZE, shuffle=False,
+        dl = DataLoader(ImageListDataset(todo, PREP_DIR, get_eval_transform(224)), batch_size=BATCH_SIZE, shuffle=False,
                         num_workers=NUM_WORKERS, pin_memory=device.type == "cuda")
         out, n_batches = [], len(dl)
         for b, x in enumerate(dl, 1):

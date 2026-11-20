@@ -1,0 +1,7 @@
+,policy,auto_cleared,missed_referable,miss_rate_%,missed_per_1000,clear_rate_%,referral_recall_%,overrides,overrides_referable,severe_or_PDR_cleared
+0,top-grade gate (max p >= 0.85) [baseline],871,0,0.0,0.0,8.7,0.0,0,0,0
+1,binary gate (P_nr >= 0.94),612,0,0.0,0.0,6.1,0.0,0,0,0
+2,binary + lesion check,598,0,0.0,0.0,6.0,0.0,14,0,0
+3,binary + fellow eye,587,0,0.0,0.0,5.9,0.0,25,0,0
+4,binary + lesion + fellow eye (fixed rule),573,0,0.0,0.0,5.7,0.0,39,0,0
+5,"threshold only, matched clears (t=0.9421)",572,0,0.0,0.0,5.7,0.0,0,0,0

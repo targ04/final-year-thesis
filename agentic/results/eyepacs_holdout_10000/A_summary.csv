@@ -1,0 +1,10 @@
+,value
+images,10000
+patients,6401
+grades,{0: 10000}
+fellow_eye_available_%,72.0
+accuracy,0.1696
+QWK,0.0
+AUC_referable,
+sens_referable_%,0.0
+spec_referable_%,74.1
